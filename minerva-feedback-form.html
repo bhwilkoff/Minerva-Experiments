@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minerva Culture Amp Feedback</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #3c3732;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #5a5550;
+            padding-bottom: 20px;
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #3c3732;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+        
+        .subtitle {
+            color: #5a6c7d;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 180px;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #f0871e;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            background: #f0871e;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background: #f0961e;
+        }
+        
+        .submit-btn:disabled {
+            background: #b4afaa;
+            cursor: not-allowed;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .note {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #f0871e;
+        }
+        
+        .note p {
+            color: #4a5568;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">MINERVA UNIVERSITY</div>
+            <div class="subtitle">Culture Amp Follow-Up Feedback</div>
+        </div>
+        
+        <div class="note">
+            <p><strong>Note:</strong> This form is completely anonymous. Your responses will help us gather new thinking and address concerns as we continue to embrace transparency and feedback as core components of our workplace culture.</p>
+        </div>
+        
+        <form id="feedbackForm">
+            <div class="form-group">
+                <label for="feedback">
+                    Based on the Culture Amp results and synthesized comments, what concerns do you still have that you would like more discussion about and what additional information, if any, would you like to provide?
+                </label>
+                <textarea 
+                    id="feedback" 
+                    name="feedback" 
+                    required
+                    placeholder="Share your thoughts here..."
+                ></textarea>
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Submit Feedback
+            </button>
+            
+            <div class="message" id="message"></div>
+        </form>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzOl6a5HZW9TMiEmy-H1GLpMUd_i6SPn8E2Zk1Jvs3pIeuwC0Vuro0iFcNp1DwaIC0/exec';
+        
+        const form = document.getElementById('feedbackForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const message = document.getElementById('message');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const feedback = document.getElementById('feedback').value.trim();
+            
+            if (!feedback) {
+                showMessage('Please provide your feedback before submitting.', 'error');
+                return;
+            }
+            
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            try {
+                // Send data to Google Apps Script
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        feedback: feedback,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+                
+                // With no-cors mode, we can't read the response, so assume success
+                showMessage('Thank you! Your feedback has been submitted successfully.', 'success');
+                form.reset();
+                
+            } catch (error) {
+                showMessage('There was an error submitting your feedback. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Feedback';
+            }
+        });
+        
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+            
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
